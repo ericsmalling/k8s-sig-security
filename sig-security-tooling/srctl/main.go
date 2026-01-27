@@ -16,7 +16,7 @@ const (
 
 func main() {
 	if err := Run(); err != nil {
-		fmt.Fprintf(os.Stderr, "error: %s\n", err)
+		fmt.Fprintf(os.Stderr, "\nerror: %s\n", err)
 		os.Exit(1)
 	}
 }
@@ -32,7 +32,9 @@ func Run() error {
 	}
 
 	var st state.Internal
-	// Let's try to find a local saved state
+	// Let's try to find a local saved state.
+	// #nosec G304
+	// caution: the binary opens a file based on provided argument.
 	file, err := os.Open(cve + ".json")
 	if err != nil {
 		if !errors.Is(err, os.ErrNotExist) {
@@ -45,7 +47,7 @@ func Run() error {
 		if err != nil {
 			return fmt.Errorf("failed to restore state from file %s: %w", file.Name(), err)
 		}
-		st.SetStatus(fmt.Sprintf("restored state from existing file %s", st.CVE))
+		st.SetStatus("restored state from existing file " + st.CVE)
 	}
 
 	for {
@@ -149,12 +151,14 @@ func Run() error {
 			}
 
 			fileName := st.CVE + "." + ext
-			err = os.WriteFile(fileName, output, 0666)
+			// Considering that the information could be confidential,
+			// let's restrict the unix permissions to the current user.
+			err = os.WriteFile(fileName, output, 0600)
 			if err != nil {
 				st.SetStatus(fmt.Sprintf("failed to write to file %s: %s", fileName, err.Error()))
 				break
 			}
-			st.SetStatus(fmt.Sprintf("successfully exported to file %s", fileName))
+			st.SetStatus("successfully exported to file " + fileName)
 		case 's', 'S':
 			err := st.ExportToFile()
 			if err != nil {

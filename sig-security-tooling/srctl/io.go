@@ -17,6 +17,8 @@ const (
 	HTMLCommentEnd   = "-->"
 )
 
+var commonEditors = []string{"vi", "vim", "emacs", "nano"}
+
 func PromptUserOneByte() (b byte, returnedErr error) {
 	oldState, err := term.MakeRaw(int(os.Stdin.Fd()))
 	if err != nil {
@@ -45,15 +47,24 @@ func instructions(number state.StepNumber, title, help, example string) []byte {
 	buf.WriteString("comments lines will be ignored. An empty text aborts the change.\n\n")
 	buf.WriteString(fmt.Sprintf("%d) %s\n\n", number, title))
 	for l := range strings.SplitSeq(help, "\n") {
-		buf.WriteString(fmt.Sprintf("%s\n", l))
+		buf.WriteString(l + "\n")
 	}
 	buf.WriteString("\nExample:\n")
 	for l := range strings.SplitSeq(example, "\n") {
-		buf.WriteString(fmt.Sprintf("%s\n", l))
+		buf.WriteString(l + "\n")
 	}
 	buf.WriteString("-->")
 
 	return buf.Bytes()
+}
+
+func firstAvailableEditor(candidates []string) (string, bool) {
+	for _, c := range candidates {
+		if _, err := exec.LookPath(c); err == nil {
+			return c, true
+		}
+	}
+	return "", false
 }
 
 func ReadFromEditor(number state.StepNumber, value, title, help, example string) (b []byte, returnedErr error) {
@@ -79,9 +90,15 @@ func ReadFromEditor(number state.StepNumber, value, title, help, example string)
 
 	editor := os.Getenv("EDITOR")
 	if editor == "" {
-		editor = "vim"
+		if firstEditor, found := firstAvailableEditor(commonEditors); found {
+			editor = firstEditor
+		} else {
+			return nil, fmt.Errorf("couldn't find an available editor in PATH from list %v, please set EDITOR", commonEditors)
+		}
 	}
 
+	// #nosec G204
+	// caution: the binary starts whatever EDITOR is provided by user.
 	cmd := exec.Command(editor, tmpFile.Name())
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
@@ -114,7 +131,7 @@ func ReadFromEditor(number state.StepNumber, value, title, help, example string)
 	}
 
 	if scanner.Err() != nil {
-		return nil, fmt.Errorf("failed to scan file %s: %w", tmpFile.Name(), err)
+		return nil, fmt.Errorf("failed to scan file %s: %w", tmpFile.Name(), scanner.Err())
 	}
 
 	return bytes.TrimSpace(out.Bytes()), nil

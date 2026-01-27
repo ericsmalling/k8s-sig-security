@@ -15,8 +15,8 @@ const (
 	maxWidthDisplay = 60
 )
 
-// external is the struct used by the JSON marshaller to export the state to
-// files to hide the implementation details to the user
+// External is the struct used by the JSON marshaller to export the state to
+// files to hide the implementation details to the user.
 type external struct {
 	CVE   string              `json:"cve"`
 	Steps map[StepName]string `json:"steps"`
@@ -49,7 +49,7 @@ func New(cve string) Internal {
 	return Internal{
 		CVE:   cve,
 		steps: initSteps,
-		focus: StepNumber(StepSummary),
+		focus: StepSummary,
 	}
 }
 
@@ -123,7 +123,11 @@ func (s Internal) toExternal() external {
 
 func (s Internal) ToJSON() ([]byte, error) {
 	externalState := s.toExternal()
-	return json.MarshalIndent(externalState, "", "	")
+	b, err := json.MarshalIndent(externalState, "", "	")
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal indent to JSON: %w", err)
+	}
+	return b, nil
 }
 
 func (s *Internal) ExportToFile() error {
@@ -173,19 +177,19 @@ func RestoreFromFile(file *os.File, cve string) (Internal, error) {
 	return stateFromFile.toInternal(), nil
 }
 
-func truncateMiddle(s string, max int) string {
-	if len(s) <= max || max <= 0 {
+func truncateMiddle(s string, maximum int) string {
+	if len(s) <= maximum || maximum <= 0 {
 		return s
 	}
 
 	ellipsis := "[...]"
-	if max <= len(ellipsis) {
+	if maximum <= len(ellipsis) {
 		// max is too small to fit ellipsis, just truncate hard
-		return s[:max]
+		return s[:maximum]
 	}
 
 	// Remaining space for start + end
-	remain := max - len(ellipsis)
+	remain := maximum - len(ellipsis)
 	startLen := remain / 2
 	endLen := remain - startLen
 

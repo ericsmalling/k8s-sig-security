@@ -1,7 +1,7 @@
 package state
 
 import (
-	"fmt"
+	"errors"
 	"strings"
 )
 
@@ -19,7 +19,7 @@ const (
 	StepMax
 )
 
-// Compile time check that stepMax is <=10
+// Compile time check that stepMax is <=10.
 var _ [10 - StepMax]int
 
 type StepNumber int
@@ -80,7 +80,7 @@ var initSteps = map[StepName]Step{
 		Example: "Buffer overflow in whatever allows remote code execution",
 		Validate: func(summary string) error {
 			if strings.Contains(summary, "\n") {
-				return fmt.Errorf("invalid summary, should contain only one line")
+				return errors.New("invalid summary, should contain only one line")
 			}
 			return nil
 		},

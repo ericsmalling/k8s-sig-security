@@ -180,6 +180,10 @@ func (s Internal) ToProcessedData() (CVEData, error) {
 			data.AdditionalDetails = value
 		case StepAcknowledgements:
 			data.Acknowledgements = value
+		case StepMax:
+			fallthrough
+		default:
+			panic("this is a bug, please report")
 		}
 	}
 
