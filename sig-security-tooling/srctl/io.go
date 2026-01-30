@@ -108,7 +108,14 @@ func ReadFromEditor(number state.StepNumber, value, title, help, example string)
 		return nil, fmt.Errorf("failed to run the editor: %w", err)
 	}
 
-	scanner := bufio.NewScanner(tmpFile)
+	// Re-open the file to read from the beginning after editor modified it
+	editedFile, err := os.Open(tmpFile.Name())
+	if err != nil {
+		return nil, fmt.Errorf("failed to re-open file %s: %w", tmpFile.Name(), err)
+	}
+	defer editedFile.Close()
+
+	scanner := bufio.NewScanner(editedFile)
 	var out bytes.Buffer
 	inComment := false
 	for scanner.Scan() {
