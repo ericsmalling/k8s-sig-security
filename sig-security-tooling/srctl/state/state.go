@@ -144,6 +144,7 @@ func (s *Internal) ExportToFile() error {
 	if err != nil {
 		return fmt.Errorf("failed to create new file %s: %w", s.CVE, err)
 	}
+	defer file.Close()
 
 	_, err = file.Write(bytes)
 	if err != nil {
