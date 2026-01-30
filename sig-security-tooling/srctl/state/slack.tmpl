@@ -1,8 +1,7 @@
-_Use this slack message template for publicly disclosing security vulnerabilities on slack._
+<!-- Use this slack message template for publicly disclosing security vulnerabilities on slack.
 
-_Do not forget to update $ISSUE in the generated content_
+Do not forget to update $ISSUE in the generated content.
 
-_This message should be posted to the `#announcements` channel, which requires special permissions._
+This message should be posted to the `#announcements` channel, which requires special permissions. -->
 
----
 The Security Response Committee has posted a security advisory{{ if .Versions }} for {{ (index .Versions 0).Component }}{{ end }}{{ if .Summary }} that {{ .Summary }}{{ end }}. This issue has been rated **{{ .CVSS.Severity }}** and assigned **{{ .CVE }}**. Please see $ISSUE for more details.

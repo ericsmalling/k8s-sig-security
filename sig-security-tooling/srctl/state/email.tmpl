@@ -1,30 +1,29 @@
-_Use this email template for publicly disclosing security vulnerabilities._
+<!-- Use this email template for publicly disclosing security vulnerabilities.
 
-_Do not forget to update $ISSUE and $PERSON in the generated content_
+Do not forget to update $ISSUE and $PERSON in the generated content.
 
-_The email should be **concise** and **actionable**. Assume the audience are not
+The email should be concise and actionable. Assume the audience are not
 Kubernetes developers. Non-actionable information (e.g. technical discussion of
-the vulnerability) should be deferred to the [vulnerability
-issue](vulnerability-announcement-issue.md)._
+the vulnerability) should be deferred to the vulnerability issue. -->
 
 TO: `kubernetes-announce@googlegroups.com, dev@kubernetes.io, kubernetes-security-announce@googlegroups.com, kubernetes-security-discuss@googlegroups.com, distributors-announce@kubernetes.io`
 
 SUBJECT: `[Security Advisory] {{ .CVE }}{{ if .Summary }}: {{ .Summary }}{{ end }}`
 
-_A separate email should be sent for `oss-security@lists.openwall.com`, with `[kubernetes]` in the subject:_
+<!-- A separate email should be sent for `oss-security@lists.openwall.com`, with `[kubernetes]` in the subject: -->
 
 TO: `oss-security@lists.openwall.com`
 
 SUBJECT: `[kubernetes] {{ .CVE }}{{ if .Summary }}: {{ .Summary }}{{ end }}`
 
-_A separate email should be sent to the forum from the `security@kubernetes.io` Google group and cc `kubernetes+announcements@discoursemail.com`:_
+<!-- A separate email should be sent to the forum from the `security@kubernetes.io` Google group and cc `kubernetes+announcements@discoursemail.com`: -->
 
 TO: `security@kubernetes.io`
 cc: `kubernetes+announcements@discoursemail.com`
 
 SUBJECT: `[Security Advisory] {{ .CVE }}{{ if .Summary }}: {{ .Summary }}{{ end }}`
 
-_See [Fix disclosure process](security-release-process.md#fix-disclosure-process) for additional places the announcement should be posted._
+<!-- See Fix disclosure process (security-release-process.md#fix-disclosure-process) for additional places the announcement should be posted. -->
 
 ---
 
