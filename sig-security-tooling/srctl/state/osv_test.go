@@ -4,9 +4,15 @@ import (
 	"encoding/json"
 	"strings"
 	"testing"
+
+	"github.com/ossf/osv-schema/bindings/go/osvschema"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
-const testCVE = "CVE-2024-1234"
+const (
+	testCVE           = "CVE-2024-1234"
+	testSchemaVersion = "1.6.0"
+)
 
 func TestToOSV(t *testing.T) {
 	data := CVEData{
@@ -28,8 +34,8 @@ func TestToOSV(t *testing.T) {
 
 	osv := data.ToOSV()
 
-	if osv.SchemaVersion != "1.6.0" {
-		t.Errorf("ToOSV() SchemaVersion = %q, want %q", osv.SchemaVersion, "1.6.0")
+	if osv.SchemaVersion != testSchemaVersion {
+		t.Errorf("ToOSV() SchemaVersion = %q, want %q", osv.SchemaVersion, testSchemaVersion)
 	}
 	if osv.ID != testCVE {
 		t.Errorf("ToOSV() ID = %q, want %q", osv.ID, testCVE)
@@ -271,5 +277,61 @@ func TestToOSVEmptyData(t *testing.T) {
 	}
 	if len(osv.Credits) != 0 {
 		t.Errorf("ToOSV() Credits should be empty, got %d", len(osv.Credits))
+	}
+}
+
+// TestOSVOfficialSchemaCompatibility validates that our OSV output can be
+// parsed by the official OSSF OSV schema library.
+func TestOSVOfficialSchemaCompatibility(t *testing.T) {
+	data := CVEData{
+		CVE:     testCVE,
+		Summary: "Buffer overflow in kube-apiserver",
+		CVSS: CVSS{
+			URL:      "https://www.first.org/cvss/calculator/3.1#CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H",
+			Vector:   "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H",
+			Severity: "HIGH",
+			Score:    8.8,
+		},
+		Description: "A vulnerability was found in kube-apiserver.",
+		Versions: []Versions{
+			{Component: "kube-apiserver", FirstAffectedVersion: "v1.30.0", FixedVersion: "v1.31.12"},
+			{Component: "kube-apiserver", FirstAffectedVersion: "v1.32.0", FixedVersion: "v1.32.8"},
+		},
+		Acknowledgements: "Security Researcher",
+	}
+
+	jsonBytes, err := data.ToOSVJSON()
+	if err != nil {
+		t.Fatalf("ToOSVJSON() error = %v", err)
+	}
+
+	// Parse with official OSSF OSV schema library
+	var official osvschema.Vulnerability
+	err = protojson.Unmarshal(jsonBytes, &official)
+	if err != nil {
+		t.Fatalf("Official OSV schema failed to parse our output: %v\nJSON:\n%s", err, string(jsonBytes))
+	}
+
+	// Verify key fields were parsed correctly
+	if official.GetId() != testCVE {
+		t.Errorf("Official parser ID = %q, want %q", official.GetId(), testCVE)
+	}
+	if official.GetSummary() != "Buffer overflow in kube-apiserver" {
+		t.Errorf("Official parser Summary = %q", official.GetSummary())
+	}
+	if official.GetDetails() != "A vulnerability was found in kube-apiserver." {
+		t.Errorf("Official parser Details = %q", official.GetDetails())
+	}
+	if official.GetSchemaVersion() != testSchemaVersion {
+		t.Errorf("Official parser SchemaVersion = %q, want %q", official.GetSchemaVersion(), testSchemaVersion)
+	}
+	if len(official.GetAffected()) == 0 {
+		t.Error("Official parser Affected should not be empty")
+	}
+	if len(official.GetSeverity()) == 0 {
+		t.Error("Official parser Severity should not be empty")
+	}
+	if len(official.GetCredits()) == 0 {
+		t.Error("Official parser Credits should not be empty")
 	}
 }
