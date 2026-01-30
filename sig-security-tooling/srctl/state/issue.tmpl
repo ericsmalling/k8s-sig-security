@@ -1,5 +1,11 @@
-# {{ .CVE }}{{ if .Summary }}: {{ .Summary }}{{ end}}
-{{- if .CVSS.URL }}
+_Use this issue template for publicly disclosing security vulnerabilities._
+
+_Do not forget to update $RELEVANT_SIGS and $IMPACTED_COMPONENTS in the generated content_
+
+ISSUE TITLE: `{{ .CVE }}{{ if .Summary }}: {{ .Summary }}{{ end}}`
+
+---
+{{ if .CVSS.URL }}
 CVSS Rating: [{{ .CVSS.Vector }}]({{ .CVSS.URL }})
 {{- end }}
 

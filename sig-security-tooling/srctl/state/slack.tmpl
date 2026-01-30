@@ -1,19 +1,8 @@
 _Use this slack message template for publicly disclosing security vulnerabilities on slack._
 
+_Do not forget to update $ISSUE in the generated content_
+
 _This message should be posted to the `#announcements` channel, which requires special permissions._
 
 ---
-
-The Security Response Committee has posted a security advisory{{ if .Versions }}
-for {{ (index .Versions 0).Component }}{{ end }}{{ if .Summary }} that {{
-.Summary }}{{ end }}. This issue has been rated **{{ .CVSS.Severity }}** and
-assigned **{{ .CVE }}**. Please see $ISSUE for more details.
-
----
-
-_Example_
-
-The Security Response Committee has posted a security advisory for the kube-apiserver that could
-allow node updates to bypass a Validating Admission Webhook. This issue has been rated **Medium**
-and assigned **CVE-2021-25735**. Please see https://github.com/kubernetes/kubernetes/issues/100096
-for more details.
+The Security Response Committee has posted a security advisory{{ if .Versions }} for {{ (index .Versions 0).Component }}{{ end }}{{ if .Summary }} that {{ .Summary }}{{ end }}. This issue has been rated **{{ .CVSS.Severity }}** and assigned **{{ .CVE }}**. Please see $ISSUE for more details.
