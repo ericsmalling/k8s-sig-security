@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -16,14 +17,28 @@ const (
 
 func main() {
 	if err := Run(); err != nil {
-		fmt.Fprintf(os.Stderr, "\nerror: %s\n", err)
+		fmt.Fprintf(os.Stderr, "error: %s\n", err)
 		os.Exit(1)
 	}
 }
 
+const placeholderIssue = `TITLE: PLACEHOLDER ISSUE
+
+---
+
+/triage accepted
+/lifecycle frozen
+/area security
+/kind bug
+/committee security-response
+`
+
 func Run() error {
 	if len(os.Args) < 2 {
-		return errors.New("please give CVE-YYYY-NNNNN as argument")
+		fmt.Fprintf(os.Stderr, "usage: %s CVE-YYYY-NNNNN\n", filepath.Base(os.Args[0]))
+		fmt.Fprint(os.Stderr, "No CVE arg provided, printing placeholder issue template:\n\n")
+		fmt.Print(placeholderIssue)
+		return nil
 	}
 
 	cve := strings.ToUpper(os.Args[1])
