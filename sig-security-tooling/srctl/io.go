@@ -113,7 +113,11 @@ func ReadFromEditor(number state.StepNumber, value, title, help, example string)
 	if err != nil {
 		return nil, fmt.Errorf("failed to re-open file %s: %w", tmpFile.Name(), err)
 	}
-	defer editedFile.Close()
+	defer func() {
+		if err := editedFile.Close(); err != nil {
+			returnedErr = fmt.Errorf("failed to close file %s: %w", tmpFile.Name(), err)
+		}
+	}()
 
 	scanner := bufio.NewScanner(editedFile)
 	var out bytes.Buffer

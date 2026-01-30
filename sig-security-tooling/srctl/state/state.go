@@ -144,11 +144,14 @@ func (s *Internal) ExportToFile() error {
 	if err != nil {
 		return fmt.Errorf("failed to create new file %s: %w", s.CVE, err)
 	}
-	defer file.Close()
 
-	_, err = file.Write(bytes)
-	if err != nil {
-		return fmt.Errorf("failed to write to file %s: %w", file.Name(), err)
+	_, writeErr := file.Write(bytes)
+	closeErr := file.Close()
+	if writeErr != nil {
+		return fmt.Errorf("failed to write to file %s: %w", file.Name(), writeErr)
+	}
+	if closeErr != nil {
+		return fmt.Errorf("failed to close file %s: %w", file.Name(), closeErr)
 	}
 	s.Dirty = false
 	return nil
