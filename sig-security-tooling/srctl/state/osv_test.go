@@ -280,6 +280,111 @@ func TestToOSVEmptyData(t *testing.T) {
 	}
 }
 
+// TestOSVCustomVsOfficialIdentical validates that our custom OSV implementation
+// produces identical JSON output to the official library implementation.
+func TestOSVCustomVsOfficialIdentical(t *testing.T) {
+	data := CVEData{
+		CVE:     testCVE,
+		Summary: "Buffer overflow in kube-apiserver",
+		CVSS: CVSS{
+			URL:      "https://www.first.org/cvss/calculator/3.1#CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H",
+			Vector:   "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H",
+			Severity: "HIGH",
+			Score:    8.8,
+		},
+		Description: "A vulnerability was found in kube-apiserver.",
+		Versions: []Versions{
+			{Component: "kube-apiserver", FirstAffectedVersion: "v1.30.0", FixedVersion: "v1.31.12"},
+		},
+		Acknowledgements: "Security Researcher",
+	}
+
+	customJSON, err := data.ToOSVJSON()
+	if err != nil {
+		t.Fatalf("ToOSVJSON() error = %v", err)
+	}
+
+	officialJSON, err := data.ToOSVJSONOfficial()
+	if err != nil {
+		t.Fatalf("ToOSVJSONOfficial() error = %v", err)
+	}
+
+	// Parse both into generic maps to compare (ignoring field order and timestamp)
+	var customMap, officialMap map[string]any
+	if err := json.Unmarshal(customJSON, &customMap); err != nil {
+		t.Fatalf("Failed to parse custom JSON: %v", err)
+	}
+	if err := json.Unmarshal(officialJSON, &officialMap); err != nil {
+		t.Fatalf("Failed to parse official JSON: %v", err)
+	}
+
+	// Remove 'modified' field since timestamps will differ
+	delete(customMap, "modified")
+	delete(officialMap, "modified")
+
+	// Compare key fields
+	if customMap["id"] != officialMap["id"] {
+		t.Errorf("ID mismatch: custom=%v, official=%v", customMap["id"], officialMap["id"])
+	}
+	if customMap["summary"] != officialMap["summary"] {
+		t.Errorf("Summary mismatch: custom=%v, official=%v", customMap["summary"], officialMap["summary"])
+	}
+	if customMap["details"] != officialMap["details"] {
+		t.Errorf("Details mismatch: custom=%v, official=%v", customMap["details"], officialMap["details"])
+	}
+	if customMap["schema_version"] != officialMap["schema_version"] {
+		t.Errorf("schema_version mismatch: custom=%v, official=%v", customMap["schema_version"], officialMap["schema_version"])
+	}
+
+	// Compare severity
+	customSeverity, _ := customMap["severity"].([]any)
+	officialSeverity, _ := officialMap["severity"].([]any)
+	if len(customSeverity) != len(officialSeverity) {
+		t.Errorf("Severity length mismatch: custom=%d, official=%d", len(customSeverity), len(officialSeverity))
+	} else if len(customSeverity) > 0 {
+		cs := customSeverity[0].(map[string]any)
+		os := officialSeverity[0].(map[string]any)
+		if cs["score"] != os["score"] {
+			t.Errorf("Severity score mismatch: custom=%v, official=%v", cs["score"], os["score"])
+		}
+	}
+
+	// Compare affected packages
+	customAffected, _ := customMap["affected"].([]any)
+	officialAffected, _ := officialMap["affected"].([]any)
+	if len(customAffected) != len(officialAffected) {
+		t.Errorf("Affected length mismatch: custom=%d, official=%d", len(customAffected), len(officialAffected))
+	} else if len(customAffected) > 0 {
+		ca := customAffected[0].(map[string]any)
+		oa := officialAffected[0].(map[string]any)
+		caPkg := ca["package"].(map[string]any)
+		oaPkg := oa["package"].(map[string]any)
+		if caPkg["name"] != oaPkg["name"] {
+			t.Errorf("Package name mismatch: custom=%v, official=%v", caPkg["name"], oaPkg["name"])
+		}
+		if caPkg["ecosystem"] != oaPkg["ecosystem"] {
+			t.Errorf("Package ecosystem mismatch: custom=%v, official=%v", caPkg["ecosystem"], oaPkg["ecosystem"])
+		}
+	}
+
+	// Compare credits
+	customCredits, _ := customMap["credits"].([]any)
+	officialCredits, _ := officialMap["credits"].([]any)
+	if len(customCredits) != len(officialCredits) {
+		t.Errorf("Credits length mismatch: custom=%d, official=%d", len(customCredits), len(officialCredits))
+	} else if len(customCredits) > 0 {
+		cc := customCredits[0].(map[string]any)
+		oc := officialCredits[0].(map[string]any)
+		if cc["name"] != oc["name"] {
+			t.Errorf("Credit name mismatch: custom=%v, official=%v", cc["name"], oc["name"])
+		}
+	}
+
+	// Log both outputs for visual comparison
+	t.Logf("Custom JSON:\n%s", string(customJSON))
+	t.Logf("Official JSON:\n%s", string(officialJSON))
+}
+
 // TestOSVOfficialSchemaCompatibility validates that our OSV output can be
 // parsed by the official OSSF OSV schema library.
 func TestOSVOfficialSchemaCompatibility(t *testing.T) {
