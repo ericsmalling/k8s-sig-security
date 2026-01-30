@@ -27,14 +27,14 @@ func TestParseAffectedVersions(t *testing.T) {
 			},
 		},
 		{
-			name: "multiple components mixed",
+			name: "multiple versions same component",
 			input: `kube-apiserver < v1.31.12
-etcd v3.5.0 < v3.5.8
-kubelet < v1.30.7`,
+kube-apiserver v1.32.0 < v1.32.8
+kube-apiserver < v1.33.4`,
 			want: []Versions{
 				{Component: "kube-apiserver", FirstAffectedVersion: "", FixedVersion: "v1.31.12"},
-				{Component: "etcd", FirstAffectedVersion: "v3.5.0", FixedVersion: "v3.5.8"},
-				{Component: "kubelet", FirstAffectedVersion: "", FixedVersion: "v1.30.7"},
+				{Component: "kube-apiserver", FirstAffectedVersion: "v1.32.0", FixedVersion: "v1.32.8"},
+				{Component: "kube-apiserver", FirstAffectedVersion: "", FixedVersion: "v1.33.4"},
 			},
 		},
 		{
@@ -42,12 +42,18 @@ kubelet < v1.30.7`,
 			input: `
 
 	kube-apiserver    <    v1.31.12
-Etcd V3.5.0    <   V3.5.8
+kube-apiserver V1.32.0    <   V1.32.8
 `,
 			want: []Versions{
 				{Component: "kube-apiserver", FirstAffectedVersion: "", FixedVersion: "v1.31.12"},
-				{Component: "Etcd", FirstAffectedVersion: "V3.5.0", FixedVersion: "V3.5.8"},
+				{Component: "kube-apiserver", FirstAffectedVersion: "V1.32.0", FixedVersion: "V1.32.8"},
 			},
+		},
+		{
+			name:      "mixed components should error",
+			input:     "kube-apiserver < v1.31.12\netcd v3.5.0 < v3.5.8",
+			want:      []Versions{},
+			wantError: true,
 		},
 		{
 			name: "invalid lines",
