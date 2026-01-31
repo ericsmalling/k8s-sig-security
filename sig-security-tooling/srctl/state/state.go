@@ -16,11 +16,20 @@ const (
 	maxWidthDisplay = 60
 )
 
+// buildInfo holds version and build information for JSON export.
+type buildInfo struct {
+	Version   string `json:"version"`
+	GitCommit string `json:"git_commit,omitempty"`
+	BuildTime string `json:"build_time,omitempty"`
+	GoVersion string `json:"go_version,omitempty"`
+}
+
 // External is the struct used by the JSON marshaller to export the state to
 // files to hide the implementation details to the user.
 type external struct {
-	CVE   string              `json:"cve"`
-	Steps map[StepName]string `json:"steps"`
+	CVE       string              `json:"cve"`
+	Steps     map[StepName]string `json:"steps"`
+	BuildInfo buildInfo           `json:"build_info"`
 }
 
 func (s external) toInternal() Internal {
@@ -121,6 +130,12 @@ func (s Internal) toExternal() external {
 	newExternal.Steps = map[StepName]string{}
 	for key, step := range s.steps {
 		newExternal.Steps[key] = step.Value
+	}
+	newExternal.BuildInfo = buildInfo{
+		Version:   Version,
+		GitCommit: GitCommit + GitDirty,
+		BuildTime: BuildTime,
+		GoVersion: GoVersion,
 	}
 	return newExternal
 }

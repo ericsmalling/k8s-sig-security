@@ -21,10 +21,21 @@ var (
 	emailTemplate    = template.Must(template.New("email").Parse(rawEmailTemplate))
 )
 
+// templateData wraps CVEData with additional metadata for template rendering.
+type templateData struct {
+	CVEData
+	BuildInfo string
+}
+
 func (d CVEData) toFormatWithTemplate(template *template.Template) ([]byte, error) {
 	var buf bytes.Buffer
 
-	err := template.Execute(&buf, d)
+	data := templateData{
+		CVEData:   d,
+		BuildInfo: BuildInfoString(),
+	}
+
+	err := template.Execute(&buf, data)
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute the template: %w", err)
 	}
