@@ -41,7 +41,7 @@ func Run() error {
 		return nil
 	}
 
-	cve := strings.ToUpper(os.Args[1])
+	cve := strings.TrimSuffix(strings.ToUpper(os.Args[1]), ".JSON")
 	if !regexp.MustCompile(`^CVE-\d{4}-\d{4,}$`).MatchString(cve) {
 		return errors.New("invalid CVE name")
 	}
