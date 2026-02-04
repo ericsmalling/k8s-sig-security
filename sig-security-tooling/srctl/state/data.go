@@ -52,6 +52,7 @@ type CVEData struct {
 	AdditionalDetails string
 	Acknowledgements  string
 	GitHubIssue       GitHubIssue
+	FixLead           string
 }
 
 func parseCVSS(cvssURL string) (CVSS, error) {
@@ -210,6 +211,8 @@ func (s Internal) ToProcessedData() (CVEData, error) {
 				}
 				data.GitHubIssue = ghIssue
 			}
+		case StepFixLead:
+			data.FixLead = value
 		case StepMax:
 			fallthrough
 		default:

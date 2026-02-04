@@ -67,8 +67,8 @@ func TestFocusNavigation(t *testing.T) {
 
 	// Test wrap around backward
 	st.PreviousFocus()
-	if st.GetFocus() != StepGitHubIssue {
-		t.Errorf("PreviousFocus() wrap around focus = %d, want %d", st.GetFocus(), StepGitHubIssue)
+	if st.GetFocus() != StepFixLead {
+		t.Errorf("PreviousFocus() wrap around focus = %d, want %d", st.GetFocus(), StepFixLead)
 	}
 }
 

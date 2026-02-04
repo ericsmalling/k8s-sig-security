@@ -1,8 +1,11 @@
 package state
 
 import (
+	"context"
 	"errors"
+	"os/exec"
 	"strings"
+	"time"
 )
 
 const (
@@ -17,6 +20,7 @@ const (
 	StepAdditionalDetails
 	StepAcknowledgements
 	StepGitHubIssue
+	StepFixLead
 	StepMax
 )
 
@@ -73,6 +77,8 @@ func (s StepNumber) Name() StepName {
 		return "acknowledgements"
 	case StepGitHubIssue:
 		return "github_issue"
+	case StepFixLead:
+		return "fix_lead"
 	case StepMax:
 		fallthrough
 	default:
@@ -91,6 +97,7 @@ type Step struct {
 	Placeholder string
 	Markdown    bool
 	Validate    func(string) error
+	PrePopulate func() string
 }
 
 var initSteps = map[StepName]Step{
@@ -234,6 +241,29 @@ Marko Mudrinić @xmudrii`,
 			}
 			_, err := parseGitHubIssueURL(issueURL)
 			return err
+		},
+	},
+	StepFixLead.Name(): {
+		ID:    StepFixLead,
+		Title: "Fix Lead",
+		Help: `The name of the person issuing the CVE announcement from the SRC (used to sign
+the in email template)`,
+		Example: "Tabitha Sable",
+		PrePopulate: func() string {
+			ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+			defer cancel()
+			cmd := exec.CommandContext(ctx, "git", "config", "user.name")
+			out, err := cmd.Output()
+			if err != nil {
+				return ""
+			}
+			return strings.TrimSpace(string(out))
+		},
+		Validate: func(name string) error {
+			if strings.Contains(name, "\n") {
+				return errors.New("invalid fix lead name, should contain only one line")
+			}
+			return nil
 		},
 	},
 }

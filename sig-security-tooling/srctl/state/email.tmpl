@@ -1,7 +1,5 @@
 <!-- Use this email template for publicly disclosing security vulnerabilities.
 
-Do not forget to update $PERSON in the generated content.
-
 The email should be concise and actionable. Assume the audience are not
 Kubernetes developers. Non-actionable information (e.g. technical discussion of
 the vulnerability) should be deferred to the vulnerability issue. -->
@@ -92,6 +90,9 @@ See the GitHub issue for more details: {{ .GitHubIssue.URL }}
 {{ .Acknowledgements }}
 {{- end }}
 
+{{- if .FixLead }}
+
 Thank You,
 
-$PERSON on behalf of the Kubernetes Security Response Committee
+{{ .FixLead }} on behalf of the Kubernetes Security Response Committee
+{{- end }}

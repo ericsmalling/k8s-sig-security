@@ -90,7 +90,12 @@ func Run() error {
 		switch pressedKey {
 		case '\r':
 			modifiedStep := st.GetCurrentStep()
-			fromEditor, err := ReadFromEditor(modifiedStep.ID, modifiedStep.Value, modifiedStep.Title, modifiedStep.Help, modifiedStep.Example)
+			// Use PrePopulate value for editor if step value is empty
+			editorValue := modifiedStep.Value
+			if editorValue == "" && modifiedStep.PrePopulate != nil {
+				editorValue = modifiedStep.PrePopulate()
+			}
+			fromEditor, err := ReadFromEditor(modifiedStep.ID, editorValue, modifiedStep.Title, modifiedStep.Help, modifiedStep.Example)
 			if err != nil {
 				return fmt.Errorf("failed to read from editor: %w", err)
 			}

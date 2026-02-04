@@ -59,6 +59,7 @@ func New(cve string) Internal {
 	// Copy initSteps to avoid sharing the map reference across instances
 	steps := make(map[StepName]Step, len(initSteps))
 	maps.Copy(steps, initSteps)
+
 	return Internal{
 		CVE:   cve,
 		steps: steps,
