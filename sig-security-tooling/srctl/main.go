@@ -122,7 +122,7 @@ func Run() error {
 			st.SetCurrentStep(modifiedStep)
 			st.NextFocus()
 		case 'x', 'X':
-			fmt.Print(" (i)ssue, e(m)ail, (s)lack? ")
+			fmt.Print(" (i)ssue, e(m)ail, (s)lack or (a)ll? ")
 			pressedKey, err := PromptUserOneByte()
 			if err != nil {
 				return err
@@ -135,45 +135,48 @@ func Run() error {
 				break
 			}
 
-			var ext string
-			var output []byte
-			switch pressedKey {
-			case 'i', 'I':
-				ext = "issue.md"
-				output, err = data.ToIssue()
-				if err != nil {
-					st.SetStatus(err.Error())
-					break
-				}
-			case 'm', 'M':
-				ext = "email.md"
-				output, err = data.ToEmail()
-				if err != nil {
-					st.SetStatus(err.Error())
-					break
-				}
-			case 's', 'S':
-				ext = "slack.md"
-				output, err = data.ToSlack()
-				if err != nil {
-					st.SetStatus(err.Error())
-					break
-				}
+			type export struct {
+				ext    string
+				toFunc func() ([]byte, error)
 			}
-			if ext == "" {
+			exports := map[byte][]export{
+				'i': {{"issue.md", data.ToIssue}},
+				'm': {{"email.md", data.ToEmail}},
+				's': {{"slack.md", data.ToSlack}},
+				'a': {
+					{"issue.md", data.ToIssue},
+					{"email.md", data.ToEmail},
+					{"slack.md", data.ToSlack},
+				},
+			}
+
+			key := pressedKey | 0x20 // lowercase
+			toExport, ok := exports[key]
+			if !ok {
 				st.SetStatus(fmt.Sprintf("invalid export format %c", pressedKey))
 				break
 			}
 
-			fileName := st.CVE + "." + ext
-			// Considering that the information could be confidential,
-			// let's restrict the unix permissions to the current user.
-			err = os.WriteFile(fileName, output, 0600)
-			if err != nil {
-				st.SetStatus(fmt.Sprintf("failed to write to file %s: %s", fileName, err.Error()))
-				break
+			var exportedFiles []string
+			for _, e := range toExport {
+				output, err := e.toFunc()
+				if err != nil {
+					st.SetStatus(err.Error())
+					break
+				}
+				fileName := st.CVE + "." + e.ext
+				// Considering that the information could be confidential,
+				// let's restrict the unix permissions to the current user.
+				err = os.WriteFile(fileName, output, 0600)
+				if err != nil {
+					st.SetStatus(fmt.Sprintf("failed to write to file %s: %s", fileName, err.Error()))
+					break
+				}
+				exportedFiles = append(exportedFiles, fileName)
 			}
-			st.SetStatus("successfully exported to file " + fileName)
+			if len(exportedFiles) == len(toExport) {
+				st.SetStatus("successfully exported to: " + strings.Join(exportedFiles, ", "))
+			}
 		case 's', 'S':
 			err := st.ExportToFile()
 			if err != nil {
