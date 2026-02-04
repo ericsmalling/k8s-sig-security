@@ -72,7 +72,7 @@ func Run() error {
 		fmt.Printf("Status: %s\n", st.GetStatus())
 		st.ClearStatus()
 
-		fmt.Print("Enter or (0-9) to edit, (s)ave, e(x)port, (q)uit: ")
+		fmt.Print("Enter or (0-9,a-b) to edit, (s)ave, e(x)port, (q)uit: ")
 		pressedKey, err := PromptUserOneByte()
 		if err != nil {
 			return err
@@ -81,29 +81,13 @@ func Run() error {
 		// would mess up the terminal output
 		fmt.Printf("%q", pressedKey)
 
-		switch pressedKey {
-		case state.StepSummary.ASCII():
-			fallthrough
-		case state.StepCVSS.ASCII():
-			fallthrough
-		case state.StepDescription.ASCII():
-			fallthrough
-		case state.StepVulnerable.ASCII():
-			fallthrough
-		case state.StepAffectedVersions.ASCII():
-			fallthrough
-		case state.StepUpgrade.ASCII():
-			fallthrough
-		case state.StepMitigate.ASCII():
-			fallthrough
-		case state.StepDetection.ASCII():
-			fallthrough
-		case state.StepAdditionalDetails.ASCII():
-			fallthrough
-		case state.StepAcknowledgements.ASCII():
-			step := state.StepNumber(pressedKey - '0')
+		// Handle step number keys (0-9, a-b) before the switch
+		if step := state.StepNumberFromASCII(pressedKey); step >= 0 && step < state.StepMax {
 			st.GoToFocus(step)
-			fallthrough
+			pressedKey = '\r' // treat as enter to edit
+		}
+
+		switch pressedKey {
 		case '\r':
 			modifiedStep := st.GetCurrentStep()
 			fromEditor, err := ReadFromEditor(modifiedStep.ID, modifiedStep.Value, modifiedStep.Title, modifiedStep.Help, modifiedStep.Example)
@@ -114,11 +98,11 @@ func Run() error {
 			if modifiedStep.Validate != nil {
 				err = modifiedStep.Validate(modifiedStep.Value)
 				if err != nil {
-					st.SetStatus(fmt.Sprintf("invalid value for %d: %s", st.GetFocus(), err))
+					st.SetStatus(fmt.Sprintf("invalid value for %c: %s", st.GetFocus().ASCII(), err))
 					break
 				}
 			}
-			st.SetStatus(fmt.Sprintf("edited step %d", st.GetFocus()))
+			st.SetStatus(fmt.Sprintf("edited step %c", st.GetFocus().ASCII()))
 			st.SetCurrentStep(modifiedStep)
 			st.NextFocus()
 		case 'x', 'X':
@@ -185,10 +169,10 @@ func Run() error {
 			st.SetStatus(fmt.Sprintf("successfully saved to file %s.json", st.CVE))
 		case 'j':
 			st.NextFocus()
-			st.SetStatus(fmt.Sprintf("scrolled to %d", st.GetFocus()))
+			st.SetStatus(fmt.Sprintf("scrolled to %c", st.GetFocus().ASCII()))
 		case 'k':
 			st.PreviousFocus()
-			st.SetStatus(fmt.Sprintf("scrolled to %d", st.GetFocus()))
+			st.SetStatus(fmt.Sprintf("scrolled to %c", st.GetFocus().ASCII()))
 		case '.':
 			data, err := st.ToProcessedData()
 			if err != nil {

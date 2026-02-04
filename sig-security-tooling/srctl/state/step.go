@@ -19,13 +19,31 @@ const (
 	StepMax
 )
 
-// Compile time check that stepMax is <=10.
-var _ [10 - StepMax]int
+// Compile time check that stepMax is <=12 (0-9 + a-b).
+var _ [12 - StepMax]int
 
 type StepNumber int
 
 func (s StepNumber) ASCII() byte {
-	return byte(s) + '0'
+	if s < 10 {
+		return byte(s) + '0'
+	}
+	return byte(s-10) + 'a'
+}
+
+// StepNumberFromASCII converts an ASCII character to a StepNumber.
+// Returns -1 if the character is not a valid step key.
+func StepNumberFromASCII(b byte) StepNumber {
+	switch {
+	case b >= '0' && b <= '9':
+		return StepNumber(b - '0')
+	case b >= 'a' && b <= 'b':
+		return StepNumber(b - 'a' + 10)
+	case b >= 'A' && b <= 'B':
+		return StepNumber(b - 'A' + 10)
+	default:
+		return -1
+	}
 }
 
 type StepName = string
@@ -181,7 +199,7 @@ OwnerReferences.`,
 		ID:       StepAdditionalDetails,
 		Title:    "Additional Details",
 		Markdown: true,
-		Help: "Add any additional details that don't fit in other sections.",
+		Help:     "Add any additional details that don't fit in other sections.",
 	},
 	StepAcknowledgements.Name(): {
 		ID:       StepAcknowledgements,

@@ -73,9 +73,9 @@ func (s Internal) String() string {
 	for stepNumber := range StepMax {
 		step := s.steps[stepNumber.Name()]
 		if step.ID == s.GetFocus() {
-			fmt.Fprintf(out, "(%s%d%s) ", reverse, step.ID, notReverse)
+			fmt.Fprintf(out, "(%s%c%s) ", reverse, step.ID.ASCII(), notReverse)
 		} else {
-			fmt.Fprintf(out, "(%d) ", step.ID)
+			fmt.Fprintf(out, "(%c) ", step.ID.ASCII())
 		}
 		fmt.Fprintf(out, "%s: ", step.Title)
 		if step.Value != "" {
