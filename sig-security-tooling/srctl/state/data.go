@@ -16,6 +16,7 @@ import (
 
 var (
 	affectedVersionRegex = regexp.MustCompile(`^\s*([A-Za-z0-9._\-]+)(?:\s+([vV]?\S+))?\s*<\s*([vV]?\S+)`)
+	gitHubIssueURLRegex  = regexp.MustCompile(`^https?://github\.com/([^/]+)/([^/]+)/issues/(\d+)/?$`)
 )
 
 type CVSS struct {
@@ -31,6 +32,13 @@ type Versions struct {
 	FixedVersion         string
 }
 
+type GitHubIssue struct {
+	URL    string
+	Org    string
+	Repo   string
+	Number string
+}
+
 type CVEData struct {
 	CVE               string
 	Summary           string
@@ -43,6 +51,7 @@ type CVEData struct {
 	Detection         string
 	AdditionalDetails string
 	Acknowledgements  string
+	GitHubIssue       GitHubIssue
 }
 
 func parseCVSS(cvssURL string) (CVSS, error) {
@@ -131,6 +140,19 @@ func parseAffectedVersions(input string) ([]Versions, error) {
 	return results, nil
 }
 
+func parseGitHubIssueURL(issueURL string) (GitHubIssue, error) {
+	matches := gitHubIssueURLRegex.FindStringSubmatch(issueURL)
+	if matches == nil {
+		return GitHubIssue{}, fmt.Errorf("invalid GitHub issue URL %q, expected format: https://github.com/ORG/REPO/issues/NUMBER", issueURL)
+	}
+	return GitHubIssue{
+		URL:    issueURL,
+		Org:    matches[1],
+		Repo:   matches[2],
+		Number: matches[3],
+	}, nil
+}
+
 func (s Internal) ToProcessedData() (CVEData, error) {
 	data := CVEData{CVE: s.CVE}
 	linter := markdownfmt.NewGoldmark()
@@ -180,6 +202,14 @@ func (s Internal) ToProcessedData() (CVEData, error) {
 			data.AdditionalDetails = value
 		case StepAcknowledgements:
 			data.Acknowledgements = value
+		case StepGitHubIssue:
+			if value != "" {
+				ghIssue, ghErr := parseGitHubIssueURL(value)
+				if ghErr != nil {
+					return CVEData{}, fmt.Errorf("failed to parse GitHub issue URL: %w", ghErr)
+				}
+				data.GitHubIssue = ghIssue
+			}
 		case StepMax:
 			fallthrough
 		default:

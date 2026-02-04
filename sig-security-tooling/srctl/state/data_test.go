@@ -78,3 +78,102 @@ kubelet < v1.30.7`,
 		})
 	}
 }
+
+func TestParseGitHubIssueURL(t *testing.T) {
+	tests := []struct {
+		name      string
+		input     string
+		want      GitHubIssue
+		wantError bool
+	}{
+		{
+			name:  "valid https URL",
+			input: "https://github.com/kubernetes/kubernetes/issues/12345",
+			want: GitHubIssue{
+				URL:    "https://github.com/kubernetes/kubernetes/issues/12345",
+				Org:    "kubernetes",
+				Repo:   "kubernetes",
+				Number: "12345",
+			},
+		},
+		{
+			name:  "valid http URL",
+			input: "http://github.com/kubernetes/kubernetes/issues/12345",
+			want: GitHubIssue{
+				URL:    "http://github.com/kubernetes/kubernetes/issues/12345",
+				Org:    "kubernetes",
+				Repo:   "kubernetes",
+				Number: "12345",
+			},
+		},
+		{
+			name:  "valid URL with trailing slash",
+			input: "https://github.com/kubernetes/kubernetes/issues/12345/",
+			want: GitHubIssue{
+				URL:    "https://github.com/kubernetes/kubernetes/issues/12345/",
+				Org:    "kubernetes",
+				Repo:   "kubernetes",
+				Number: "12345",
+			},
+		},
+		{
+			name:  "different org and repo",
+			input: "https://github.com/istio/istio/issues/99999",
+			want: GitHubIssue{
+				URL:    "https://github.com/istio/istio/issues/99999",
+				Org:    "istio",
+				Repo:   "istio",
+				Number: "99999",
+			},
+		},
+		{
+			name:      "missing issue number",
+			input:     "https://github.com/kubernetes/kubernetes/issues/",
+			wantError: true,
+		},
+		{
+			name:      "non-numeric issue number",
+			input:     "https://github.com/kubernetes/kubernetes/issues/abc",
+			wantError: true,
+		},
+		{
+			name:      "wrong path (pull instead of issues)",
+			input:     "https://github.com/kubernetes/kubernetes/pull/12345",
+			wantError: true,
+		},
+		{
+			name:      "missing repo",
+			input:     "https://github.com/kubernetes/issues/12345",
+			wantError: true,
+		},
+		{
+			name:      "not github.com",
+			input:     "https://gitlab.com/kubernetes/kubernetes/issues/12345",
+			wantError: true,
+		},
+		{
+			name:      "empty string",
+			input:     "",
+			wantError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := parseGitHubIssueURL(tt.input)
+			if tt.wantError {
+				if err == nil {
+					t.Errorf("expected error but got none, result: %#v", got)
+				}
+				return
+			}
+			if err != nil {
+				t.Errorf("unexpected error: %s", err)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("got %#v, want %#v", got, tt.want)
+			}
+		})
+	}
+}

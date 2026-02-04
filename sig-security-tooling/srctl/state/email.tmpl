@@ -1,6 +1,6 @@
 <!-- Use this email template for publicly disclosing security vulnerabilities.
 
-Do not forget to update $ISSUE and $PERSON in the generated content.
+Do not forget to update $PERSON in the generated content.
 
 The email should be concise and actionable. Assume the audience are not
 Kubernetes developers. Non-actionable information (e.g. technical discussion of
@@ -80,6 +80,10 @@ If you find evidence that this vulnerability has been exploited, please contact 
 #### Additional Details
 
 {{ .AdditionalDetails }}
+{{- end }}
+{{- if .GitHubIssue.URL }}
+
+See the GitHub issue for more details: {{ .GitHubIssue.URL }}
 {{- end }}
 {{- if .Acknowledgements }}
 

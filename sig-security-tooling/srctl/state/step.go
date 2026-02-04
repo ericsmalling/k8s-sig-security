@@ -16,6 +16,7 @@ const (
 	StepDetection
 	StepAdditionalDetails
 	StepAcknowledgements
+	StepGitHubIssue
 	StepMax
 )
 
@@ -70,6 +71,8 @@ func (s StepNumber) Name() StepName {
 		return "additional_details"
 	case StepAcknowledgements:
 		return "acknowledgements"
+	case StepGitHubIssue:
+		return "github_issue"
 	case StepMax:
 		fallthrough
 	default:
@@ -219,5 +222,18 @@ The issue was fixed and coordinated by:
 Sergey Kanzhelev @SergeyKanzhelev
 Jordan Liggitt @liggitt
 Marko Mudrinić @xmudrii`,
+	},
+	StepGitHubIssue.Name(): {
+		ID:      StepGitHubIssue,
+		Title:   "GitHub Issue",
+		Help:    "The full GitHub issue URL for this CVE",
+		Example: "https://github.com/kubernetes/kubernetes/issues/136680",
+		Validate: func(issueURL string) error {
+			if issueURL == "" {
+				return nil
+			}
+			_, err := parseGitHubIssueURL(issueURL)
+			return err
+		},
 	},
 }
