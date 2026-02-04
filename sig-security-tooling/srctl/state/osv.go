@@ -123,6 +123,12 @@ func (d CVEData) ToOSV() OSV {
 		}
 	}
 
+	// Add CVE.org URL as ADVISORY reference
+	osv.References = append(osv.References, OSVRef{
+		Type: "ADVISORY",
+		URL:  "https://www.cve.org/cverecord?id=" + d.CVE,
+	})
+
 	// Add GitHub issue URL as ADVISORY reference if available
 	if d.GitHubIssue.URL != "" {
 		osv.References = append(osv.References, OSVRef{

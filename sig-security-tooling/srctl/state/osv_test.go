@@ -180,14 +180,23 @@ func TestToOSVReferences(t *testing.T) {
 
 	osv := data.ToOSV()
 
-	if len(osv.References) != 1 {
-		t.Fatalf("ToOSV() References length = %d, want 1", len(osv.References))
+	// Should have 2 references: CVE.org ADVISORY and CVSS WEB
+	if len(osv.References) != 2 {
+		t.Fatalf("ToOSV() References length = %d, want 2", len(osv.References))
 	}
-	if osv.References[0].Type != "WEB" {
-		t.Errorf("ToOSV() References[0].Type = %q, want %q", osv.References[0].Type, "WEB")
+	// First reference should be CVE.org ADVISORY
+	if osv.References[0].Type != "ADVISORY" {
+		t.Errorf("ToOSV() References[0].Type = %q, want %q", osv.References[0].Type, "ADVISORY")
 	}
-	if osv.References[0].URL != "https://www.first.org/cvss/calculator/3.1#CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H" {
+	if osv.References[0].URL != "https://www.cve.org/cverecord?id="+testCVE {
 		t.Errorf("ToOSV() References[0].URL = %q", osv.References[0].URL)
+	}
+	// Second reference should be CVSS WEB
+	if osv.References[1].Type != "WEB" {
+		t.Errorf("ToOSV() References[1].Type = %q, want %q", osv.References[1].Type, "WEB")
+	}
+	if osv.References[1].URL != "https://www.first.org/cvss/calculator/3.1#CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H" {
+		t.Errorf("ToOSV() References[1].URL = %q", osv.References[1].URL)
 	}
 }
 
@@ -272,8 +281,12 @@ func TestToOSVEmptyData(t *testing.T) {
 	if len(osv.Affected) != 0 {
 		t.Errorf("ToOSV() Affected should be empty, got %d", len(osv.Affected))
 	}
-	if len(osv.References) != 0 {
-		t.Errorf("ToOSV() References should be empty, got %d", len(osv.References))
+	// Should always have CVE.org ADVISORY reference
+	if len(osv.References) != 1 {
+		t.Errorf("ToOSV() References should have 1 (CVE.org), got %d", len(osv.References))
+	}
+	if osv.References[0].URL != "https://www.cve.org/cverecord?id=CVE-2024-0000" {
+		t.Errorf("ToOSV() References[0].URL = %q", osv.References[0].URL)
 	}
 	if len(osv.Credits) != 0 {
 		t.Errorf("ToOSV() Credits should be empty, got %d", len(osv.Credits))
