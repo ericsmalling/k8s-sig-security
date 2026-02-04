@@ -7,7 +7,7 @@ import (
 )
 
 // Version is the current version of srctl.
-const Version = "1.0.0"
+const Version = "1.0.1"
 
 // Build information populated from runtime/debug.
 var (
