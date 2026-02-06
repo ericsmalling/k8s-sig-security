@@ -1,0 +1,98 @@
+<!-- Use this email template for publicly disclosing security vulnerabilities.
+
+The email should be concise and actionable. Assume the audience are not
+Kubernetes developers. Non-actionable information (e.g. technical discussion of
+the vulnerability) should be deferred to the vulnerability issue. -->
+
+TO: `kubernetes-announce@googlegroups.com, dev@kubernetes.io, kubernetes-security-announce@googlegroups.com, kubernetes-security-discuss@googlegroups.com, distributors-announce@kubernetes.io`
+
+SUBJECT: `[Security Advisory] {{ .CVE }}{{ if .Summary }}: {{ .Summary }}{{ end }}`
+
+<!-- A separate email should be sent for `oss-security@lists.openwall.com`, with `[kubernetes]` in the subject: -->
+
+TO: `oss-security@lists.openwall.com`
+
+SUBJECT: `[kubernetes] {{ .CVE }}{{ if .Summary }}: {{ .Summary }}{{ end }}`
+
+<!-- A separate email should be sent to the forum from the `security@kubernetes.io` Google group and cc `kubernetes+announcements@discoursemail.com`: -->
+
+TO: `security@kubernetes.io`
+cc: `kubernetes+announcements@discoursemail.com`
+
+SUBJECT: `[Security Advisory] {{ .CVE }}{{ if .Summary }}: {{ .Summary }}{{ end }}`
+
+<!-- See Fix disclosure process (security-release-process.md#fix-disclosure-process) for additional places the announcement should be posted. -->
+
+---
+
+Hello Kubernetes Community,
+{{- if .Description }}
+
+{{ .Description }}
+{{- end }}
+{{- if .CVSS.URL }}
+
+This issue has been rated **{{ .CVSS.Severity }}** ([CVSS calculator]({{ .CVSS.URL }}), score: {{ .CVSS.Score }}), and assigned **{{ .CVE }}**
+{{- else }}
+
+This issue has been assigned **{{ .CVE }}**
+{{- end }}
+{{- if .Vulnerable }}
+
+### Am I vulnerable?
+
+{{ .Vulnerable }}
+{{- end }}
+{{- if .Versions }}
+
+#### Affected Versions
+{{ range .Versions }}
+- {{ .Component }}: {{ if .FirstAffectedVersion }}{{ .FirstAffectedVersion }}{{ end }}{{ if and .FirstAffectedVersion .FixedVersion }} < {{ end }}{{ if .FixedVersion }}{{ .FixedVersion }}{{ end }}
+{{- end }}
+{{- end }}
+
+### How do I mitigate this vulnerability?
+
+{{ .Mitigate }}
+{{- if .Versions }}
+
+#### Fixed Versions
+{{ range .Versions }}
+- {{ .Component }}: {{ .FixedVersion }}
+{{- end }}
+{{- end }}
+
+#### How to upgrade?
+
+{{ .Upgrade }}
+{{- if .Detection }}
+
+### Detection
+
+{{ .Detection }}
+
+If you find evidence that this vulnerability has been exploited, please contact security@kubernetes.io
+{{- end }}
+{{- if .AdditionalDetails }}
+
+#### Additional Details
+
+{{ .AdditionalDetails }}
+{{- end }}
+{{- if .GitHubIssue.URL }}
+
+See the GitHub issue for more details: {{ .GitHubIssue.URL }}
+{{- end }}
+{{- if .Acknowledgements }}
+
+#### Acknowledgements
+
+{{ .Acknowledgements }}
+{{- end }}
+
+{{- if .FixLead }}
+
+Thank You,
+
+{{ .FixLead }} on behalf of the Kubernetes Security Response Committee
+{{- end }}

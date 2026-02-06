@@ -1,0 +1,42 @@
+version: "2"
+linters:
+  enable:
+    - asciicheck
+    - bidichk
+    - copyloopvar
+    - decorder
+    - dupl
+    - dupword
+    - errcheck
+    - errname
+    - errorlint
+    - exhaustive
+    - gocheckcompilerdirectives
+    - goconst
+    - gocritic
+    - godot
+    - gosec
+    - govet
+    - ineffassign
+    - intrange
+    - mirror
+    - makezero
+    - misspell
+    - modernize
+    - musttag
+    - nilerr
+    - nilnesserr
+    - nilnil
+    - perfsprint
+    - prealloc
+    - predeclared
+    - reassign
+    - staticcheck
+    - tagalign
+    - unconvert
+    - unparam
+    - unused
+    - usestdlibvars
+    - wastedassign
+    - whitespace
+    - wrapcheck

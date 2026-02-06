@@ -1,0 +1,5 @@
+<!-- Use this slack message template for publicly disclosing security vulnerabilities on slack.
+
+This message should be posted to the `#announcements` channel, which requires special permissions. -->
+
+The Security Response Committee has posted a security advisory{{ if .Versions }} for {{ (index .Versions 0).Component }}{{ end }}{{ if .Summary }} that {{ .Summary }}{{ end }}. This issue has been rated **{{ .CVSS.Severity }}** and assigned **{{ .CVE }}**.{{ if .GitHubIssue.URL }} Please see {{ .GitHubIssue.URL }} for more details.{{ end }}
